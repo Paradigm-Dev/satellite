@@ -20,7 +20,7 @@
             src="./assets/logo.png"
             style="margin-right: 4px; margin-top: 3px; height: 18px"
           />
-          <span style="margin-top: 2px">ElectronTemplate</span>
+          <span style="margin-top: 2px">Satellite</span>
           <!-- <span class="font-weight-light grey--text lighten-2 mr-2 hidden-xs-only">early-access beta</span> -->
           <v-btn
             text
@@ -116,7 +116,7 @@
             style="height: 24px; margin-right: 4px; margin-top: 1px"
           />
           <span style="margin-right: 4px; margin-top: 3px"
-            >ElectronTemplate</span
+            >Satellite</span
           >
           <v-btn
             text
@@ -169,7 +169,7 @@
           style="max-width: 28rem; padding-top: 5rem"
           class="mx-auto text-center"
         >
-          <img style="height: 8rem; margin: auto" src="./assets/paradigm.png" />
+          <img style="height: 8rem; margin: auto" src="./assets/logo.png" />
 
           <v-card
             class="mt-10"
@@ -222,78 +222,19 @@
         </div>
       </v-main>
 
-      <v-main v-if="!$root.data && $root.user" key="home">
-        <v-container>
-          <h1 class="display-2 font-weight-light mt-6">
-            Welcome,
-            <span :style="{ color: $root.user.color }">{{
-              $root.user.username
-            }}</span
-            >!
-          </h1>
-          <p class="grey--text">
-            Not {{ $root.user.username }}?
-            <a @click="$root.user = false">Sign out</a>.
-          </p>
-          <v-row>
-            <v-col sm="6">
-              <v-btn x-large @click="newDocument()"
-                ><v-icon left>mdi-plus</v-icon>New</v-btn
-              >
-            </v-col>
-            <v-col sm="6" class="pa-0">
-              <v-row align="center">
-                <v-col sm="10">
-                  <span class="grey--text">Open...</span>
-                </v-col>
-                <v-col sm="2" class="text-right">
-                  <v-btn icon @click="refreshFiles()"
-                    ><v-icon color="grey">mdi-reload</v-icon></v-btn
-                  >
-                </v-col>
-              </v-row>
-              <v-list>
-                <v-list-item
-                  v-for="(file, index) in filteredFileList"
-                  @click="openDocument(file)"
-                  :key="index"
-                >
-                  <v-list-item-title>{{ file.name }}</v-list-item-title>
-                </v-list-item>
-                <v-list-item v-if="filteredFileList.length < 1">
-                  <v-list-item-title class="text-center grey--text font-italic"
-                    >You have no files</v-list-item-title
-                  >
-                </v-list-item>
-              </v-list>
-            </v-col>
-          </v-row>
-        </v-container>
-      </v-main>
-
-      <v-main v-if="$root.data && $root.user" key="editor">
+      <v-main v-show="$root.user" key="webview">
         <v-toolbar color="#06224B" dense>
-          <v-tabs
-            show-arrows
-            color="grey lighten-2"
-            v-model="tab"
-            background-color="transparent"
-          >
-            <v-tab>Tab</v-tab>
-            <v-tab>Tab</v-tab>
-            <v-tab>Tab</v-tab>
-            <v-tab>Tab</v-tab>
-            <v-tab>Tab</v-tab>
-            <v-tab>Tab</v-tab>
-            <v-tabs-slider></v-tabs-slider>
-          </v-tabs>
+          <v-btn icon @click="$refs.webview.goBack()"><v-icon>mdi-chevron-left</v-icon></v-btn>
+          <v-btn icon @click="$refs.webview.goForward()"><v-icon>mdi-chevron-right</v-icon></v-btn>
+          <v-btn icon @click="$refs.webview.reload()"><v-icon>mdi-reload</v-icon></v-btn>
+          <input spellcheck="false" placeholder="URL" v-model="url" @keypress.enter="url.includes('satellite://') ? url = url : url_displayed = url" style="width: 100%;">
         </v-toolbar>
-
-        <v-container>
-          <v-tabs-items class="transparent" style="width: 100%" v-model="tab">
-            <!-- Add tab content here -->
-          </v-tabs-items>
-        </v-container>
+        <webview v-show="!url.includes('satellite://')" ref="webview" class="page" :src="url_displayed" autosize="on"></webview>
+        <div class="page" v-show="url.includes('satellite://')">
+          <div class="newtab" v-if="url == 'satellite://new'">
+            <v-text-field @keyup.enter="$refs.webview.loadURL(`https://duckduckgo.com/?q=${encodeURIComponent(search)}`); url = `https://duckduckgo.com/?q=${encodeURIComponent(search)}`; search = ''" solo placeholder="Search..." v-model="search" style="max-width: 750px; margin: auto; padding: 10% 24px;"></v-text-field>
+          </div>
+        </div>
       </v-main>
     </v-slide-x-transition>
   </v-app>
@@ -303,20 +244,9 @@
 import { remote } from "electron";
 import axios from "axios";
 
-import Home from "./pages/Home";
-import Data from "./pages/Data";
-import Files from "./pages/Files";
-import Logs from "./pages/Logs";
-import Help from "./pages/Help";
-
 export default {
   name: "app",
   components: {
-    Home,
-    Data,
-    Files,
-    Logs,
-    Help,
   },
   data() {
     return {
@@ -325,10 +255,11 @@ export default {
       process,
       username: "",
       password: "",
-      tab: 0,
       console,
-      open_dialog: false,
-      file_to_open: {},
+      url: 'satellite://new',
+      url_displayed: 'https://www.google.com/',
+      search: '',
+      encodeURIComponent
     };
   },
   computed: {
@@ -359,7 +290,6 @@ export default {
     minimize() {
       this.win.minimize();
     },
-
     signIn() {
       axios
         .post("https://www.theparadigmdev.com/api/users/signin", {
@@ -393,6 +323,11 @@ export default {
       }
     });
   },
+  mounted() {
+    // this.$refs.webview.addEventListener('did-navigate', () => { this.url = this.$refs.webview.src })
+    // this.$refs.webview.addEventListener('did-navigate-in-page', () => { this.url = this.$refs.webview.src })
+    // this.$refs.webview.addEventListener('update-target-url', () => { this.url = this.$refs.webview.src })
+  }
 };
 </script>
 
@@ -456,4 +391,15 @@ input,
 textarea {
   color: white;
 }
+
+webview {
+      width: 100%;
+      height: 100%;
+    }
+
+    .page {
+  width: 100%;
+  height: calc(100vh - 86px);
+}
+
 </style>

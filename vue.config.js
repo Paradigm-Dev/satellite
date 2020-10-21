@@ -6,19 +6,19 @@ module.exports = {
       removeElectronJunk: false,
       nodeIntegration: true,
       builderOptions: {
-        productName: "ElectronTemplate",
+        productName: "Satellite",
         mac: {
           darkModeSupport: true,
         },
         dmg: {
-          artifactName: "ElectronTemplate-v${version}.${ext}",
-          title: "ElectronTemplate",
+          artifactName: "Satellite-v${version}.${ext}",
+          title: "Satellite",
         },
         nsis: {
-          artifactName: "ElectronTemplate-v${version}.${ext}",
+          artifactName: "Satellite-v${version}.${ext}",
           deleteAppDataOnUninstall: true,
-          shortcutName: "ElectronTemplate",
-          uninstallDisplayName: "ElectronTemplate",
+          shortcutName: "Satellite",
+          uninstallDisplayName: "Satellite",
         },
       },
     },
