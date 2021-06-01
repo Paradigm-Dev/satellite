@@ -7,7 +7,7 @@
       window
       style="-webkit-app-region: drag; -webkit-user-select: none"
       height="38"
-      :color="$root.data ? '#06224B' : 'transparent'"
+      color="#06224B"
       class="pr-0"
     >
       <v-fade-transition group leave-absolute>
@@ -22,39 +22,6 @@
           />
           <span style="margin-top: 2px">Satellite</span>
           <!-- <span class="font-weight-light grey--text lighten-2 mr-2 hidden-xs-only">early-access beta</span> -->
-          <v-btn
-            text
-            small
-            color="grey lighten-1"
-            class="ml-2"
-            @click="saveDocument()"
-            v-if="$root.data"
-            >Save</v-btn
-          >
-          <v-btn
-            text
-            small
-            color="grey lighten-1"
-            @click="newDocument()"
-            v-if="$root.data"
-            >New</v-btn
-          >
-          <v-btn
-            text
-            small
-            color="grey lighten-1"
-            v-if="$root.data"
-            @click="open_dialog = true"
-            >Open</v-btn
-          >
-          <v-btn
-            text
-            small
-            color="grey lighten-1"
-            @click="$root.view.close_confirm_and_landing = true"
-            v-if="$root.data"
-            >Back</v-btn
-          >
         </div>
         <span
           key="notification"
@@ -85,7 +52,7 @@
       window
       style="-webkit-app-region: drag"
       height="38"
-      :color="$root.data ? '#06224B' : 'transparent'"
+      color="#06224B"
     >
       <div
         style="height: 12px; width: 12px; border-radius: 12px"
@@ -115,42 +82,7 @@
             src="./assets/logo.png"
             style="height: 24px; margin-right: 4px; margin-top: 1px"
           />
-          <span style="margin-right: 4px; margin-top: 3px"
-            >Satellite</span
-          >
-          <v-btn
-            text
-            small
-            color="grey lighten-1"
-            class="ml-2"
-            @click="saveDocument()"
-            v-if="$root.data"
-            >Save</v-btn
-          >
-          <v-btn
-            text
-            small
-            color="grey lighten-1"
-            @click="newDocument()"
-            v-if="$root.data"
-            >New</v-btn
-          >
-          <v-btn
-            text
-            small
-            color="grey lighten-1"
-            v-if="$root.data"
-            @click="open_dialog = true"
-            >Open</v-btn
-          >
-          <v-btn
-            text
-            small
-            color="grey lighten-1"
-            @click="$root.view.close_confirm_and_landing = true"
-            v-if="$root.data"
-            >Back</v-btn
-          >
+          <span style="margin-right: 4px; margin-top: 3px">Satellite</span>
           <!-- <span class="font-weight-light grey--text lighten-2 mr-2 hidden-xs-only">early-access beta</span> -->
         </div>
         <p
@@ -163,80 +95,61 @@
     </v-system-bar>
 
     <!-- Site content -->
-    <v-slide-x-transition group hide-on-leave>
-      <v-main v-if="!$root.user" key="login">
-        <div
-          style="max-width: 28rem; padding-top: 5rem"
-          class="mx-auto text-center"
+    <v-main key="webview">
+      <v-toolbar color="#06224B" dense>
+        <v-btn
+          v-if="$refs.webview"
+          :disabled="!$refs.webview.canGoBack()"
+          icon
+          @click="$refs.webview.goBack()"
+          ><v-icon>mdi-chevron-left</v-icon></v-btn
         >
-          <img style="height: 8rem; margin: auto" src="./assets/logo.png" />
-
-          <v-card
-            class="mt-10"
-            color="#333333"
-            style="border: none !important; width: 100%"
-          >
-            <v-card-title>
-              <h1 class="text-h4 grey--text text--lighten-1">
-                Sign in to your account
-              </h1>
-              <p
-                class="text--grey text--darken-4 font-weight-light ma-0 subtitle-2"
-              >
-                Or <a class="text--grey text--darken-4"> create an account</a>
-              </p></v-card-title
-            >
-            <v-card-text>
-              <v-text-field
-                hide-details
-                label="Username"
-                class="mb-3"
-                v-model="username"
-              ></v-text-field>
-              <v-text-field
-                hide-details
-                label="Password"
-                class="mb-6"
-                type="password"
-                @keypress.enter="signIn()"
-                v-model="password"
-              ></v-text-field>
-              <v-btn
-                block
-                color="deep-purple darken-4"
-                @click="signIn()"
-                :disabled="!username || !password"
-                >Sign in</v-btn
-              >
-            </v-card-text>
-
-            <v-card-actions class="grey darken-4 pa-7">
-              <p
-                class="ma-auto subtitle-2 text-center font-weight-light text--grey text--darken-4"
-              >
-                Forgot your credentials?
-                <a class="text--grey text--darken-4"> Enter account recovery</a>
-              </p>
-            </v-card-actions>
-          </v-card>
+        <v-btn
+          v-if="$refs.webview"
+          :disabled="!$refs.webview.canGoForward()"
+          icon
+          @click="$refs.webview.goForward()"
+          ><v-icon>mdi-chevron-right</v-icon></v-btn
+        >
+        <v-btn icon @click="$refs.webview.reload()"
+          ><v-icon>mdi-reload</v-icon></v-btn
+        >
+        <input
+          class="ml-3"
+          spellcheck="false"
+          placeholder="URL"
+          v-model="url"
+          @keypress.enter="
+            url.includes('satellite://') ? (url = url) : (url_displayed = url)
+          "
+          style="width: 100%"
+        />
+      </v-toolbar>
+      <webview
+        v-show="!url.includes('satellite://')"
+        ref="webview"
+        class="page"
+        :src="url_displayed"
+        autosize="on"
+      ></webview>
+      <div class="page" v-show="url.includes('satellite://')">
+        <div class="newtab" v-if="url == 'satellite://new'">
+          <v-text-field
+            @keyup.enter="
+              $refs.webview.loadURL(
+                `https://duckduckgo.com/?q=${encodeURIComponent(search)}`
+              );
+              url = `https://duckduckgo.com/?q=${encodeURIComponent(search)}`;
+              search = '';
+            "
+            solo
+            placeholder="Search..."
+            v-model="search"
+            style="max-width: 750px; margin: auto; padding: 10% 24px"
+          ></v-text-field>
         </div>
-      </v-main>
-
-      <v-main v-show="$root.user" key="webview">
-        <v-toolbar color="#06224B" dense>
-          <v-btn icon @click="$refs.webview.goBack()"><v-icon>mdi-chevron-left</v-icon></v-btn>
-          <v-btn icon @click="$refs.webview.goForward()"><v-icon>mdi-chevron-right</v-icon></v-btn>
-          <v-btn icon @click="$refs.webview.reload()"><v-icon>mdi-reload</v-icon></v-btn>
-          <input spellcheck="false" placeholder="URL" v-model="url" @keypress.enter="url.includes('satellite://') ? url = url : url_displayed = url" style="width: 100%;">
-        </v-toolbar>
-        <webview v-show="!url.includes('satellite://')" ref="webview" class="page" :src="url_displayed" autosize="on"></webview>
-        <div class="page" v-show="url.includes('satellite://')">
-          <div class="newtab" v-if="url == 'satellite://new'">
-            <v-text-field @keyup.enter="$refs.webview.loadURL(`https://duckduckgo.com/?q=${encodeURIComponent(search)}`); url = `https://duckduckgo.com/?q=${encodeURIComponent(search)}`; search = ''" solo placeholder="Search..." v-model="search" style="max-width: 750px; margin: auto; padding: 10% 24px;"></v-text-field>
-          </div>
-        </div>
-      </v-main>
-    </v-slide-x-transition>
+      </div>
+    </v-main>
   </v-app>
 </template>
 
@@ -246,33 +159,19 @@ import axios from "axios";
 
 export default {
   name: "app",
-  components: {
-  },
+  components: {},
   data() {
     return {
       win: remote.getCurrentWindow(),
       maximized: remote.getCurrentWindow().isMaximized(),
       process,
-      username: "",
-      password: "",
       console,
-      url: 'satellite://new',
-      url_displayed: 'https://www.google.com/',
-      search: '',
-      encodeURIComponent
+      url: "satellite://new",
+      url_displayed: "satellite://new",
+      search: "",
+      encodeURIComponent,
     };
   },
-  computed: {
-    filteredFileList() {
-      let files = [];
-      for (let i = 0; i < this.$root.user.files.length; i++) {
-        if (this.$root.user.files[i].type == "workshop/intel")
-          files.push(this.$root.user.files[i]);
-      }
-      return files;
-    },
-  },
-
   methods: {
     close() {
       if (this.$root.data && !this.$root.view.close_confirm_and_quit)
@@ -290,44 +189,18 @@ export default {
     minimize() {
       this.win.minimize();
     },
-    signIn() {
-      axios
-        .post("https://www.theparadigmdev.com/api/users/signin", {
-          username: this.username.toLowerCase(),
-          password: this.password,
-        })
-        .then((response) => {
-          if (!response.data.msg) {
-            this.$root.user = response.data;
-            this.username = "";
-            this.password = "";
-          } else {
-            this.$notify(`<span class="red--text">${response.data.msg}</span>`);
-          }
-        })
-        .catch((error) => console.error(JSON.stringify(error)));
-    },
-    refreshFiles() {
-      axios
-        .get(
-          `https://www.theparadigmdev.com/api/drawer/${this.$root.user._id}/list`
-        )
-        .then((response) => (this.$root.user.files = response.data))
-        .catch((error) => console.error(error));
-    },
-  },
-  created() {
-    document.addEventListener("keydown", (event) => {
-      if (event.metaKey || event.ctrlKey) {
-        if (event.code == "KeyS" && this.$root.data) this.saveDocument();
-      }
-    });
   },
   mounted() {
-    // this.$refs.webview.addEventListener('did-navigate', () => { this.url = this.$refs.webview.src })
-    // this.$refs.webview.addEventListener('did-navigate-in-page', () => { this.url = this.$refs.webview.src })
-    // this.$refs.webview.addEventListener('update-target-url', () => { this.url = this.$refs.webview.src })
-  }
+    this.$refs.webview.addEventListener("did-navigate", () => {
+      this.url = this.$refs.webview.src;
+    });
+    this.$refs.webview.addEventListener("did-navigate-in-page", () => {
+      this.url = this.$refs.webview.src;
+    });
+    this.$refs.webview.addEventListener("update-target-url", () => {
+      this.url = this.$refs.webview.src;
+    });
+  },
 };
 </script>
 
@@ -393,13 +266,12 @@ textarea {
 }
 
 webview {
-      width: 100%;
-      height: 100%;
-    }
+  width: 100%;
+  height: 100%;
+}
 
-    .page {
+.page {
   width: 100%;
   height: calc(100vh - 86px);
 }
-
 </style>
